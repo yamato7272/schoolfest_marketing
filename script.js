@@ -5,7 +5,7 @@
  * - grid: 150個のタイルを自動生成し、売上に応じてタイルを隠す。
  * - salesInput: 売上本数を入力し、EnterでFirestoreに加算。
  * - progressBar, progressText: 売上進捗ゲージと数値表示。
- * - Firestoreのデータ構造: { count: 売上本数, hiddenTiles: 隠すタイルのindex配列 }
+ * - Firestoreのデータ構造: { total: 売上本数, hidden: 隠すタイルのindex配列 }
  * - 10本売れるごとにランダムなタイルが1つずつ隠れる。
  */
 
@@ -35,13 +35,13 @@ onSnapshot(salesRef, (docSnap) => {
 
   // タイルの可視/不可視を更新
   tiles.forEach((tile, idx) => {
-    tile.style.opacity = data.hiddenTiles.includes(idx) ? 0 : 1;
+    tile.style.opacity = data.hidden.includes(idx) ? 0 : 1;
   });
 
   // ゲージと数値を更新
-  const count = data.count;
-  progressBar.style.width = `${Math.min(count / 1500 * 100, 100)}%`;
-  progressText.textContent = `${count} / 1500`;
+  const total = data.total;
+  progressBar.style.width = `${Math.min(total / 1500 * 100, 100)}%`;
+  progressText.textContent = `${total} / 1500`;
 });
 
 // --- 売上入力→Firestore更新 ---
@@ -54,23 +54,23 @@ input.addEventListener("keydown", async (e) => {
   if (!snap.exists()) return;
 
   const data = snap.data();
-  let newCount = data.count + value;
-  let hiddenTiles = [...data.hiddenTiles];
+  let newTotal = data.total + value;
+  let hidden = [...data.hidden];
 
   // 10本ごとにランダムなタイルを追加で隠す
-  const tilesToHide = Math.floor(newCount / 10) - Math.floor(data.count / 10);
+  const tilesToHide = Math.floor(newTotal / 10) - Math.floor(data.total / 10);
   for (let i = 0; i < tilesToHide; i++) {
     let rand;
     do {
       rand = Math.floor(Math.random() * 150);
-    } while (hiddenTiles.includes(rand)); // 既に隠れているタイルは除外
-    hiddenTiles.push(rand);
+    } while (hidden.includes(rand)); // 既に隠れているタイルは除外
+    hidden.push(rand);
   }
 
   // Firestoreを更新
   await updateDoc(salesRef, {
-    count: newCount,
-    hiddenTiles: hiddenTiles
+    total: newTotal,
+    hidden: hidden
   });
 
   input.value = ""; // 入力欄リセット
