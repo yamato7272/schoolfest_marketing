@@ -1,3 +1,15 @@
+/*
+  style.css
+  - このファイルは売上可視化ページのスタイルを定義します。
+  - レイアウト、タイル、進捗バー、入力欄などの見た目を調整。
+  - .container: 全体の枠。背景画像や影、サイズ調整。
+  - .grid: タイル配置用のグリッド。背景画像もここで指定。
+  - .tile: 1つ1つのタイル。opacityで可視/不可視を切り替え。
+  - .progress-container, .progress-bar: 売上進捗ゲージ。
+  - #salesInput: 売上本数入力欄。
+  - 画像パスや色は用途に応じて調整してください。
+*/
+
 body {
   display: flex;
   flex-direction: column;
@@ -27,54 +39,40 @@ body {
   grid-template-rows: repeat(15, 1fr);
 }
 
-.box {
-  background: rgba(255, 255, 255, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: #444;
-  border: 1px solid #ccc;
-  user-select: none;
-  transition: all 0.3s ease;
+.tile {
+  background-color: white;
+  opacity: 1;
+  transition: opacity 0.3s;
 }
 
-.revealed {
-  background: transparent !important;
-  color: transparent !important;
-  border: none !important;
-  cursor: default !important;
-  transform: none !important;
-}
-
-button {
-  margin-top: 10px;
-  padding: 10px 20px;
+#salesInput {
+  margin-top: 20px;
+  padding: 5px;
   font-size: 16px;
-  cursor: pointer;
-  background: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  transition: background 0.3s ease;
+  width: 100px;
 }
 
-button:hover {
-  background: #45a049;
+.progress-container {
+  margin-top: 20px;
+  width: 100%;
+  height: 20px;
+  background-color: #eee;
+  position: relative;
 }
 
-button:disabled {
-  background: #cccccc;
-  cursor: not-allowed;
+.progress-bar {
+  height: 100%;
+  width: 0;
+  background-color: yellow;
+  transition: width 0.3s;
 }
 
-.progress {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #666;
-}
-
-/* hide real file input */
-#fileInput {
-  display: none;
+#progressText {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  text-align: center;
+  line-height: 20px;
+  font-weight: bold;
 }
