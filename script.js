@@ -34,7 +34,13 @@ function revealBox(boxNumber) {
   revealedNumbers.add(boxNumber);
   const box = document.querySelector(`.box[data-index='${boxNumber}']`);
   if (box) {
-    box.classList.add("revealed");
+    // まず赤く点滅させてから透明にする
+    box.classList.add("flash-red");
+    box.addEventListener("animationend", function handler() {
+      box.classList.remove("flash-red");
+      box.classList.add("revealed");
+      box.removeEventListener("animationend", handler);
+    });
   }
   updateProgress();
 }

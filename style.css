@@ -1,3 +1,14 @@
+/* タイルが透明になる前に赤く点滅するアニメーション */
+@keyframes flash-red {
+  0%   { background: #fff; }
+  30%  { background: #ff4444; }
+  70%  { background: #ff4444; }
+  100% { background: #fff; }
+}
+
+.flash-red {
+  animation: flash-red 0.4s;
+}
 body {
   display: flex;
   flex-direction: column;
