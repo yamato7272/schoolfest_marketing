@@ -1,3 +1,54 @@
+html, body {
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+/* 右カラムのボタングループを縦並び・中央揃え・間隔調整 */
+.button-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  margin-top: 32px;
+}
+.button-group button {
+  width: 220px;
+  font-size: 28px;
+  padding: 22px 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+/* left-col内のbuttonを中央揃え */
+.left-col button {
+  align-self: center;
+  display: block;
+}
+/* 2カラムのグリッドレイアウト */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* 左カラム中央寄せ */
+.left-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* 右カラムは空でもOK。必要ならここに追加 */
+.right-col {
+  height: 100%;
+}
 /* タイルが透明になる前に赤く点滅するアニメーション */
 @keyframes flash-red {
   0%   { background: #fff; }
@@ -14,7 +65,7 @@ body {
   flex-direction: column;
   align-items: center;
   font-family: sans-serif;
-  margin: 20px;
+  margin: 1px;
   background: #f0f0f0;
 }
 
@@ -56,6 +107,11 @@ body {
   border: none !important;
   cursor: default !important;
   transform: none !important;
+}
+
+h2 {
+  font-size: 40px;
+  text-align: center;
 }
 
 button {
