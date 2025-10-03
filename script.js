@@ -1,20 +1,47 @@
+// --- Firebase Firestore連携 ---
+import { salesRef } from './firebase.js';
+import { getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// Firestoreのtotalをリアルタイムで画面に反映
+onSnapshot(salesRef, (docSnap) => {
+  if (!docSnap.exists()) return;
+  const data = docSnap.data();
+  const progress = document.getElementById("progress");
+  if (progress) progress.textContent = `売上本数: ${data.total}`;
+});
+
+// ボタン押下時にtotalを加算
+function addSales(num) {
+  getDoc(salesRef).then((snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const newTotal = (data.total || 0) + num;
+    updateDoc(salesRef, { total: newTotal });
+  });
+}
+
+document.getElementById("revealBtn1")?.addEventListener("click", () => addSales(1));
+document.getElementById("revealBtn3")?.addEventListener("click", () => addSales(3));
+document.getElementById("revealBtn10")?.addEventListener("click", () => addSales(10));
+
+// --- ここから下は画像上のタイル生成・管理 ---
+
 const grid = document.getElementById("grid");
 const revealBtn = document.getElementById("revealBtn");
-const saveBtn = document.getElementById("saveBtn");
-const uploadBtn = document.getElementById("uploadBtn");
-const fileInput = document.getElementById("fileInput");
-const progress = document.getElementById("progress");
+
 const totalBoxes = 150;
 
 let revealedNumbers = new Set();
 
-// Create 150 boxes
-for (let i = 1; i <= totalBoxes; i++) {
-  const div = document.createElement("div");
-  div.classList.add("box");
-  div.textContent = i;
-  div.dataset.index = i;
-  grid.appendChild(div);
+// 画像上にタイルを150個生成（常に画像の上に重なる）
+if (grid && grid.children.length === 0) {
+  for (let i = 1; i <= totalBoxes; i++) {
+    const div = document.createElement("div");
+    div.classList.add("box");
+    div.textContent = i;
+    div.dataset.index = i;
+    grid.appendChild(div);
+  }
 }
 
 function updateProgress() {
@@ -61,67 +88,6 @@ revealBtn.addEventListener("click", () => {
   const randomIndex = Math.floor(Math.random() * remainingNumbers.length);
   const randomBoxNumber = remainingNumbers[randomIndex];
   revealBox(randomBoxNumber);
-});
-
-// --- CSV Download ---
-saveBtn.addEventListener("click", () => {
-  if (revealedNumbers.size === 0) {
-    alert("No boxes revealed yet!");
-    return;
-  }
-  const csvContent =
-    "data:text/csv;charset=utf-8," +
-    Array.from(revealedNumbers).join(",");
-  const link = document.createElement("a");
-  link.setAttribute("href", encodeURI(csvContent));
-  link.setAttribute("download", "revealed_boxes.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-});
-
-// --- Trigger file input via upload button ---
-uploadBtn.addEventListener("click", () => {
-  fileInput.click();
-});
-
-// --- CSV Upload ---
-fileInput.addEventListener("change", function (e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function (event) {
-    revealedNumbers = new Set(event.target.result.split(",").map(Number));
-    // Reset all boxes
-    document
-      .querySelectorAll(".box")
-      .forEach((b) => b.classList.remove("revealed"));
-    // Reapply revealed state
-    revealedNumbers.forEach((num) => {
-      const box = document.querySelector(`.box[data-index='${num}']`);
-      if (box) box.classList.add("revealed");
-    });
-    updateProgress();
-  };
-  reader.readAsText(file);
-});
-
-// --- Alert before closing window ---
-window.addEventListener("beforeunload", function (e) {
-  if (revealedNumbers.size > 0) {
-    const confirmationMessage = "CSVを保存しましたか？";
-    e.preventDefault();
-    e.returnValue = confirmationMessage;
-    return confirmationMessage;
-  }
-});
-
-// Additional fallback for some browsers
-window.addEventListener("unload", function (e) {
-  if (revealedNumbers.size > 0) {
-    // Note: unload alerts don't work in modern browsers, but keeping for compatibility
-    alert("CSVを保存しましたか？");
-  }
 });
 
 // Initialize progress display
