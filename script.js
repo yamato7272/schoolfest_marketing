@@ -2,40 +2,67 @@
 import { salesRef } from './firebase.js';
 import { getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// Firestoreのtotalをリアルタイムで画面に反映し、10本ごとにタイルを1枚ランダムで不透明度を落とす
-let lastTileCount = 0; // 前回の商を記録
+// Firestoreのhidden配列でタイル状態を復元。totalは売上表示＆タイル開放トリガー。
+let prevHiddenArr = [];
 onSnapshot(salesRef, (docSnap) => {
   if (!docSnap.exists()) return;
   const data = docSnap.data();
   const progress = document.getElementById("progress");
   if (progress) progress.textContent = `売上本数: ${data.total}`;
 
-  // 10本ごとにタイルを1枚ランダムで不透明度を落とす
+  // hidden配列でタイル状態を復元（新規revealedは赤く点滅）
+  const hiddenArr = Array.isArray(data.hidden) ? data.hidden : [];
+  const prevSet = new Set(prevHiddenArr);
+  revealedNumbers = new Set(hiddenArr);
+  document.querySelectorAll('.box').forEach(box => {
+    const idx = Number(box.dataset.index);
+    if (revealedNumbers.has(idx)) {
+      if (!prevSet.has(idx)) {
+        // 新たにrevealedになったタイルは赤く点滅
+        box.classList.add("flash-red");
+        box.addEventListener("animationend", function handler() {
+          box.classList.remove("flash-red");
+          box.classList.add("revealed");
+          box.removeEventListener("animationend", handler);
+        });
+      } else {
+        box.classList.add("revealed");
+      }
+    } else {
+      box.classList.remove("revealed");
+    }
+  });
+  updateProgress();
+  prevHiddenArr = [...hiddenArr];
+
+  // totalの値に応じて自動でタイルを開ける
   const tileCount = Math.floor((data.total || 0) / 10);
-  if (tileCount > lastTileCount) {
-    for (let i = lastTileCount; i < tileCount; i++) {
+  if (hiddenArr.length < tileCount) {
+    // 足りない分だけhideRandomTileを呼ぶ
+    for (let i = hiddenArr.length; i < tileCount; i++) {
       hideRandomTile();
     }
-    lastTileCount = tileCount;
   }
 });
 
-// ランダムな未消去タイルを1枚選んで不透明度を落とす
+// ランダムな未消去タイルを1枚選んでhidden配列に記録（アニメーションはonSnapshotで差分検知して行う）
 function hideRandomTile() {
-  const boxes = Array.from(document.querySelectorAll('.box'));
-  const visibleBoxes = boxes.filter(box => !box.classList.contains('revealed'));
-  if (visibleBoxes.length === 0) return;
-  const randomIndex = Math.floor(Math.random() * visibleBoxes.length);
-  const box = visibleBoxes[randomIndex];
-  // 赤く点滅してから透明に
-  box.classList.add("flash-red");
-  box.addEventListener("animationend", function handler() {
-    box.classList.remove("flash-red");
-    box.classList.add("revealed");
-    box.removeEventListener("animationend", handler);
+  getDoc(salesRef).then((docSnap) => {
+    if (!docSnap.exists()) return;
+    const data = docSnap.data();
+    const hiddenArr = Array.isArray(data.hidden) ? data.hidden : [];
+    const boxes = Array.from(document.querySelectorAll('.box'));
+    const visibleBoxes = boxes.filter(box => !hiddenArr.includes(Number(box.dataset.index)));
+    if (visibleBoxes.length === 0) return;
+    const randomIndex = Math.floor(Math.random() * visibleBoxes.length);
+    const box = visibleBoxes[randomIndex];
+    const idx = Number(box.dataset.index);
+    // hidden配列に追加してFirestoreに保存（アニメーションはonSnapshotで差分検知して行う）
+    const newHidden = Array.from(new Set([...hiddenArr, idx])).sort((a, b) => a - b);
+    updateDoc(salesRef, { hidden: newHidden });
+    revealedNumbers.add(idx);
+    updateProgress();
   });
-  revealedNumbers.add(Number(box.dataset.index));
-  updateProgress();
 }
 
 // ボタン押下時にtotalを加算
@@ -88,13 +115,12 @@ function updateProgress() {
   }
 }
 
+// 任意のタイル番号を開ける（hidden配列に記録）
 function revealBox(boxNumber) {
   if (revealedNumbers.has(boxNumber)) return;
 
-  revealedNumbers.add(boxNumber);
   const box = document.querySelector(`.box[data-index='${boxNumber}']`);
   if (box) {
-    // まず赤く点滅させてから透明にする
     box.classList.add("flash-red");
     box.addEventListener("animationend", function handler() {
       box.classList.remove("flash-red");
@@ -102,7 +128,16 @@ function revealBox(boxNumber) {
       box.removeEventListener("animationend", handler);
     });
   }
-  updateProgress();
+  // hidden配列に追加してFirestoreに保存
+  getDoc(salesRef).then((docSnap) => {
+    if (!docSnap.exists()) return;
+    const data = docSnap.data();
+    const hiddenArr = Array.isArray(data.hidden) ? data.hidden : [];
+    const newHidden = Array.from(new Set([...hiddenArr, boxNumber])).sort((a, b) => a - b);
+    updateDoc(salesRef, { hidden: newHidden });
+    revealedNumbers.add(boxNumber);
+    updateProgress();
+  });
 }
 
 // Random reveal button
