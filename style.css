@@ -106,14 +106,19 @@ html, body {
 }
 /* タイルが透明になる前に赤く点滅するアニメーション */
 @keyframes flash-red {
-  0%   { background: #fff; }
-  30%  { background: #ff4444; }
-  70%  { background: #ff4444; }
-  100% { background: #fff; }
+  0%   { background: #fff;      transform: scale(1);      box-shadow: none; }
+  10%  { background: #ff4444;   transform: scale(1.25);  box-shadow: 0 0 24px 8px #ff4444cc; }
+  25%  { background: #fff700;   transform: scale(1.35);  box-shadow: 0 0 32px 12px #fff700cc; }
+  40%  { background: #fff;      transform: scale(1.1);   box-shadow: none; }
+  55%  { background: #ff4444;   transform: scale(1.5);   box-shadow: 0 0 40px 16px #ff4444cc; }
+  70%  { background: #fff700;   transform: scale(1.2);   box-shadow: 0 0 32px 12px #fff700cc; }
+  85%  { background: #fff;      transform: scale(1.05);  box-shadow: none; }
+  100% { background: #fff;      transform: scale(1);     box-shadow: none; }
 }
 
 .flash-red {
-  animation: flash-red 0.4s;
+  animation: flash-red 1.2s;
+  animation-iteration-count: 1;
 }
 body {
   display: flex;
@@ -126,8 +131,8 @@ body {
 
 .container {
   position: relative;
-  width: 500px; /* 10:15 ratio */
-  height: 750px;
+  width: 600px; /* 10:15 ratio */
+  height: 900px;
   background: url("./img/expo.jpg") center/cover no-repeat;
   border: 2px solid #333;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);

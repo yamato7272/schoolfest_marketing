@@ -58,8 +58,8 @@
       onSnapshot(salesRef, (docSnap) => {
         if (!docSnap.exists()) return;
         const data = docSnap.data();
-        const total = Math.min(data.total || 0, 1500);
-        const percent = (total / 1500) * 100;
+        const total = data.total || 0;
+        const percent = (Math.min(total, 1500) / 1500) * 100;
         const bar = document.getElementById("progressBar");
         const value = document.getElementById("progressValue");
         if (bar) bar.style.width = percent + "%";

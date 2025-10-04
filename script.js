@@ -104,7 +104,7 @@ function updateProgress() {
   const remaining = totalBoxes - revealedCount;
   const tileCountElem = document.getElementById("tileCount");
   if (tileCountElem) {
-    tileCountElem.textContent = `めくれたタイル: ${revealedCount} ／ ${totalBoxes}`;
+    tileCountElem.textContent = `開いたタイル: ${revealedCount} ／ ${totalBoxes}`;
   }
 
 }
