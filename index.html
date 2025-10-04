@@ -11,15 +11,7 @@
         <div class="container">
           <div class="grid" id="grid"></div>
         </div>
-        <div
-          id="tileCount"
-          style="
-            margin-top: 16px;
-            font-size: 2em;
-            text-align: center;
-            font-weight: bold;
-          "
-        ></div>
+        <div id="tileCount" class="tile-count"></div>
       </div>
       <div class="right-col">
         <h2>リポビタンＤ売上カウンター</h2>
@@ -32,67 +24,18 @@
           <button id="revealBtn3">購入＋３</button>
           <button id="revealBtn10">購入＋１０</button>
         </div>
-        <div style="width: 100%; margin: 32px 0 0 0; text-align: center">
-          <div
-            style="
-              width: 90%;
-              max-width: 100%;
-              margin: 0 auto;
-              height: 48px;
-              background: #e0e0e0;
-              border-radius: 24px;
-              overflow: hidden;
-              border: 2px solid #888;
-            "
-          >
-            <div
-              id="progressBar"
-              style="
-                height: 100%;
-                width: 0%;
-                background: #f1c400;
-                transition: width 0.4s;
-              "
-            ></div>
+        <div class="progress-area">
+          <div class="progress-bar-outer">
+            <div id="progressBar" class="progress-bar-inner"></div>
           </div>
-          <div
-            id="progressValue"
-            style="
-              font-size: 3.9em;
-              font-weight: bold;
-              color: #333;
-              line-height: 1.1;
-              margin-top: 12px;
-            "
-          >
-            0 ／ 1500
-          </div>
-          <div
-            id="progressLabel"
-            style="font-size: 3em; color: #333; margin-bottom: 8px"
-          >
+          <div id="progressValue" class="progress-value">0 ／ 1500</div>
+          <div id="progressLabel" class="progress-label">
             売上本数／目標本数
           </div>
         </div>
       </div>
     </div>
-    <button
-      id="toggleBtn"
-      style="
-        position: fixed;
-        right: 20px;
-        bottom: 20px;
-        z-index: 1000;
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background: #f0f0f0;
-        color: #333;
-        font-size: 24px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        border: none;
-      "
-    ></button>
+    <button id="toggleBtn" class="toggle-btn"></button>
     <script type="module" src="script.js"></script>
     <script>
       const toggleBtn = document.getElementById("toggleBtn");
