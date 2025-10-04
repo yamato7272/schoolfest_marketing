@@ -13,15 +13,66 @@
         </div>
         <div
           id="tileCount"
-          style="margin-top: 16px; font-size: 18px; text-align: center"
+          style="
+            margin-top: 16px;
+            font-size: 2em;
+            text-align: center;
+            font-weight: bold;
+          "
         ></div>
       </div>
       <div class="right-col">
-        <h2>リポビタンＤ売り上げカウンター</h2>
+        <h2>リポビタンＤ売上カウンター</h2>
+        <h3>
+          <p>リポビタンＤの売上に応じてタイルが開き、</p>
+          <p>写真が完成していきます</p>
+        </h3>
         <div class="button-group">
           <button id="revealBtn1">購入＋１</button>
           <button id="revealBtn3">購入＋３</button>
           <button id="revealBtn10">購入＋１０</button>
+        </div>
+        <div style="width: 100%; margin: 32px 0 0 0; text-align: center">
+          <div
+            style="
+              width: 90%;
+              max-width: 100%;
+              margin: 0 auto;
+              height: 48px;
+              background: #e0e0e0;
+              border-radius: 24px;
+              overflow: hidden;
+              border: 2px solid #888;
+            "
+          >
+            <div
+              id="progressBar"
+              style="
+                height: 100%;
+                width: 0%;
+                background: #f1c400;
+                transition: width 0.4s;
+              "
+            ></div>
+          </div>
+          <div
+            id="progressValue"
+            style="
+              font-size: 3.9em;
+              font-weight: bold;
+              color: #333;
+              line-height: 1.1;
+              margin-top: 12px;
+            "
+          >
+            0 ／ 1500
+          </div>
+          <div
+            id="progressLabel"
+            style="font-size: 3em; color: #333; margin-bottom: 8px"
+          >
+            売上本数／目標本数
+          </div>
         </div>
       </div>
     </div>
@@ -56,6 +107,20 @@
           if (btnGroup) btnGroup.style.display = "";
           toggleBtn.textContent = "";
         }
+      });
+    </script>
+    <script type="module">
+      import { salesRef } from "./firebase.js";
+      import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      onSnapshot(salesRef, (docSnap) => {
+        if (!docSnap.exists()) return;
+        const data = docSnap.data();
+        const total = Math.min(data.total || 0, 1500);
+        const percent = (total / 1500) * 100;
+        const bar = document.getElementById("progressBar");
+        const value = document.getElementById("progressValue");
+        if (bar) bar.style.width = percent + "%";
+        if (value) value.textContent = `${total} ／ 1500`;
       });
     </script>
   </body>
