@@ -1,3 +1,5 @@
 #特定のファイルやディレクトリを無視する
 _working_dir/**/*
 
+# Firebase 設定ファイルを無視する
+firebase.js

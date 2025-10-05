@@ -19,3 +19,6 @@ const db = getFirestore(app);
 
 // dashboard/sales というドキュメントを参照
 export const salesRef = doc(db, "dashboard", "sales");
+
+// エクスポート: 他のスクリプトからトランザクション等で db が使えるようにする
+export { db };

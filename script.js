@@ -35,35 +35,11 @@ onSnapshot(salesRef, (docSnap) => {
   updateProgress();
   prevHiddenArr = [...hiddenArr];
 
-  // totalの値に応じて自動でタイルを開ける
-  const tileCount = Math.floor((data.total || 0) / 10);
-  if (hiddenArr.length < tileCount) {
-    // 足りない分だけhideRandomTileを呼ぶ
-    for (let i = hiddenArr.length; i < tileCount; i++) {
-      hideRandomTile();
-    }
-  }
+  // index側ではhiddenの変更を受け取って表示するだけにする
+  // hidden配列の管理（新しい番号を追加する処理）は calculation ページで行う
 });
 
-// ランダムな未消去タイルを1枚選んでhidden配列に記録（アニメーションはonSnapshotで差分検知して行う）
-function hideRandomTile() {
-  getDoc(salesRef).then((docSnap) => {
-    if (!docSnap.exists()) return;
-    const data = docSnap.data();
-    const hiddenArr = Array.isArray(data.hidden) ? data.hidden : [];
-    const boxes = Array.from(document.querySelectorAll('.box'));
-    const visibleBoxes = boxes.filter(box => !hiddenArr.includes(Number(box.dataset.index)));
-    if (visibleBoxes.length === 0) return;
-    const randomIndex = Math.floor(Math.random() * visibleBoxes.length);
-    const box = visibleBoxes[randomIndex];
-    const idx = Number(box.dataset.index);
-    // hidden配列に追加してFirestoreに保存（アニメーションはonSnapshotで差分検知して行う）
-    const newHidden = Array.from(new Set([...hiddenArr, idx])).sort((a, b) => a - b);
-    updateDoc(salesRef, { hidden: newHidden });
-    revealedNumbers.add(idx);
-    updateProgress();
-  });
-}
+// hideRandomTile は削除（index.html は表示専用）
 
 // ボタン押下時にtotalを加算
 function addSales(num) {
