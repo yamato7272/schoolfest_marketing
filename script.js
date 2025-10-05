@@ -1,6 +1,6 @@
 // --- Firebase Firestore連携 ---
 import { salesRef } from './firebase.js';
-import { getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getDoc, updateDoc, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // Firestoreのhidden配列でタイル状態を復元。totalは売上表示＆タイル開放トリガー。
 let prevHiddenArr = [];
@@ -42,12 +42,10 @@ onSnapshot(salesRef, (docSnap) => {
 // hideRandomTile は削除（index.html は表示専用）
 
 // ボタン押下時にtotalを加算
+// addSales を原子的に行うため FieldValue.increment を使う
 function addSales(num) {
-  getDoc(salesRef).then((snap) => {
-    if (!snap.exists()) return;
-    const data = snap.data();
-    const newTotal = (data.total || 0) + num;
-    updateDoc(salesRef, { total: newTotal });
+  updateDoc(salesRef, { total: increment(num) }).catch(err => {
+    console.error('addSales update error', err);
   });
 }
 

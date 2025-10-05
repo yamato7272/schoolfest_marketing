@@ -1,69 +1,71 @@
+
 import { salesRef, db } from './firebase.js';
-import {
-  onSnapshot,
-  getDoc,
-  runTransaction,
-  doc
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const statusElem = document.getElementById('status');
-
-let lastProcessedMultiple = null; // 最後に処理した(total / 10)の値を記録
 
 function setStatus(msg) {
   if (statusElem) statusElem.textContent = msg;
 }
 
+// total の 10 ごとの増分（Math.floor(total/10)）を永続的に追跡して
+// 差分分だけ hidden に番号を追加する実装。
 onSnapshot(salesRef, (docSnap) => {
   if (!docSnap.exists()) return;
   const data = docSnap.data();
   const total = data.total || 0;
   setStatus(`total=${total}`);
 
-  // totalが10の倍数になったか判定
-  if (total % 10 !== 0) return;
-  const multiple = total / 10;
-  if (lastProcessedMultiple === multiple) {
-    // 既に処理済み
-    return;
-  }
+  const curCount = Math.floor(total / 10);
 
-  // transactionでhidden配列へユニークなランダム番号を追加する
+  // トランザクションで原子的に処理する
   runTransaction(db, async (t) => {
     const snap = await t.get(salesRef);
     if (!snap.exists()) return;
-    const cur = snap.data();
+    const cur = snap.data() || {};
     const curTotal = cur.total || 0;
-    // 再確認: totalが依然として同じ倍数か
-    if (curTotal % 10 !== 0) return;
-    const curMultiple = curTotal / 10;
-    // もし別のプロセスが先に処理していたらスキップ
-    if (lastProcessedMultiple === curMultiple) return;
+
+    const prevProcessed = Number.isInteger(cur.processedMultiple) ? cur.processedMultiple : 0;
+    const latestCount = Math.floor(curTotal / 10);
+    const needed = latestCount - prevProcessed;
+    console.log('transaction start', { curTotal, prevProcessed, latestCount, needed });
+    if (needed <= 0) return; // 既に処理済み
 
     const hiddenArr = Array.isArray(cur.hidden) ? cur.hidden.slice() : [];
     const totalBoxes = 150;
-
-    // 未使用の番号を列挙
     const used = new Set(hiddenArr);
     const unused = [];
     for (let i = 1; i <= totalBoxes; i++) {
       if (!used.has(i)) unused.push(i);
     }
-    if (unused.length === 0) return;
+    if (unused.length === 0) {
+      // もう追加できるタイルがない
+      // 更新は行わないが processedMultiple を増やさない
+      setStatus('no unused tiles left');
+      console.log('no unused tiles left');
+      return;
+    }
 
-    // 1つランダムに選ぶ（仕様に合わせて必要なら複数回呼び出しで複数追加可能）
-    const randIdx = Math.floor(Math.random() * unused.length);
-    const pick = unused[randIdx];
+    // needed 個までランダムに選ぶ（残数が足りない場合はできるだけ選ぶ）
+    const picks = [];
+    for (let k = 0; k < needed && unused.length > 0; k++) {
+      const idx = Math.floor(Math.random() * unused.length);
+      picks.push(unused[idx]);
+      // remove selected
+      unused.splice(idx, 1);
+    }
 
-    const newHidden = Array.from(new Set([...hiddenArr, pick])).sort((a, b) => a - b);
-    t.update(salesRef, { hidden: newHidden });
+    if (picks.length === 0) return;
 
-    // 成功したらlastProcessedMultipleを更新
-    lastProcessedMultiple = curMultiple;
-    setStatus(`added ${pick} for total ${curTotal}`);
+    console.log('picks', picks);
+    const newHidden = Array.from(new Set([...hiddenArr, ...picks])).sort((a, b) => a - b);
+    const newProcessed = prevProcessed + picks.length;
+    t.update(salesRef, { hidden: newHidden, processedMultiple: newProcessed });
+    setStatus(`added ${picks.join(',')} (processed->${newProcessed})`);
+    console.log('transaction commit', { newProcessed, picks });
   }).catch((err) => {
     console.error('transaction error', err);
-    setStatus('transaction error: ' + err.message);
+    setStatus('transaction error: ' + (err && err.message ? err.message : String(err)));
   });
 });
 
