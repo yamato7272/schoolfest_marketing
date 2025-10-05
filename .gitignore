@@ -3,3 +3,5 @@ _working_dir/**/*
 
 # Firebase 設定ファイルを無視する
 firebase.js
+
+test.js
