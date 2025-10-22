@@ -1,6 +1,6 @@
 // --- Firebase Firestore連携 ---
-import { salesRef } from './firebase.js';
-import { getDoc, updateDoc, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { salesRef, db } from './firebase.js';
+import { getDoc, updateDoc, onSnapshot, increment, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // Firestoreのhidden配列でタイル状態を復元。totalは売上表示＆タイル開放トリガー。
 let prevHiddenArr = [];
@@ -43,10 +43,36 @@ onSnapshot(salesRef, (docSnap) => {
 
 // ボタン押下時にtotalを加算
 // addSales を原子的に行うため FieldValue.increment を使う
-function addSales(num) {
-  updateDoc(salesRef, { total: increment(num) }).catch(err => {
-    console.error('addSales update error', err);
-  });
+
+// JSTタイムスタンプを返す関数
+function getJSTTimestamp() {
+  const now = new Date();
+  // 日本標準時に変換
+  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  // yyyy-mm-dd HH:MM:SS 形式
+  const yyyy = jst.getUTCFullYear();
+  const mm = String(jst.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(jst.getUTCDate()).padStart(2, '0');
+  const hh = String(jst.getUTCHours()).padStart(2, '0');
+  const mi = String(jst.getUTCMinutes()).padStart(2, '0');
+  const ss = String(jst.getUTCSeconds()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
+}
+
+// salesドキュメント配下のlogsサブコレクション参照
+const logsCollection = collection(salesRef, 'logs');
+
+// 売上本数とJSTタイムスタンプをsales/logsサブコレクションに記録し、salesRefも更新
+async function addSales(num) {
+  try {
+    await updateDoc(salesRef, { total: increment(num) });
+    await addDoc(logsCollection, {
+      timestamp: getJSTTimestamp(),
+      count: num
+    });
+  } catch (err) {
+    console.error('addSales or log error', err);
+  }
 }
 
 document.getElementById("revealBtn1")?.addEventListener("click", () => addSales(1));

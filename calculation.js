@@ -1,6 +1,6 @@
 
 import { salesRef, db } from './firebase.js';
-import { onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { onSnapshot, runTransaction, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const statusElem = document.getElementById('status');
 
@@ -69,4 +69,31 @@ onSnapshot(salesRef, (docSnap) => {
   });
 });
 
+
 setStatus('ready');
+
+// CSVダウンロードボタン処理
+document.getElementById('downloadCsvBtn')?.addEventListener('click', async () => {
+  try {
+    // salesドキュメント配下のlogsサブコレクション参照
+    const logsCol = collection(salesRef, 'logs');
+    const snapshot = await getDocs(logsCol);
+    let csv = 'timestamp,count\n';
+    snapshot.forEach(doc => {
+      const d = doc.data();
+      csv += `${d.timestamp || ''},${d.count || ''}\n`;
+    });
+    // ダウンロード処理
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'logs.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('CSVダウンロード失敗: ' + (err && err.message ? err.message : String(err)));
+  }
+});
