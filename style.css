@@ -39,11 +39,11 @@
 
 /* スマホ用UIのボタン縦並び調整 */
 #mobileUI .button-group button {
-  width: 90vw;
-  max-width: 400px;
-  font-size: 2.2em;
-  padding: 28px 0;
-  margin: 18px auto;
+  width: 100vw;
+  max-width: 720px;
+  font-size: 3.4em;
+  padding: 48px 0;
+  margin: 40px auto;
 }
 /* index.htmlから移動した新規クラス・id用スタイル */
 .tile-count {
