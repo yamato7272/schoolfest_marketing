@@ -35,6 +35,16 @@ onSnapshot(salesRef, (docSnap) => {
   updateProgress();
   prevHiddenArr = [...hiddenArr];
 
+  // 画像切り替え処理
+  const container = document.querySelector('.container');
+  if (container) {
+    if ((data.total || 0) >= 1500 && hiddenArr.length >= 150) {
+      container.style.backgroundImage = 'url("./img/LipoD_group2.png")';
+    } else {
+      container.style.backgroundImage = 'url("./img/LipoD_group1.png")';
+    }
+  }
+
   // index側ではhiddenの変更を受け取って表示するだけにする
   // hidden配列の管理（新しい番号を追加する処理）は calculation ページで行う
 });

@@ -6,7 +6,16 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="main-grid">
+    <!-- 端末種別選択モーダル -->
+    <div id="deviceModal" class="modal-overlay">
+      <div class="modal-content">
+        <h2>端末を選択してください</h2>
+        <button id="selectMobile" class="modal-btn">スマホ用</button>
+        <button id="selectPC" class="modal-btn">パソコン用</button>
+      </div>
+    </div>
+
+    <div class="main-grid" id="mainGrid">
       <div class="left-col">
         <div class="container">
           <div class="grid" id="grid"></div>
@@ -36,8 +45,50 @@
       </div>
     </div>
     <button id="toggleBtn" class="toggle-btn"></button>
+    <!-- スマホ用UI -->
+    <div
+      id="mobileUI"
+      style="
+        display: none;
+        width: 100vw;
+        height: 100vh;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      "
+    >
+      <div
+        class="button-group"
+        style="
+          flex-direction: column;
+          align-items: center;
+          gap: 18px;
+          margin-top: 32px;
+        "
+      >
+        <button id="mobileBtn1">購入＋１</button>
+        <button id="mobileBtn3">購入＋３</button>
+        <button id="mobileBtn10">購入＋１０</button>
+      </div>
+    </div>
     <script type="module" src="script.js"></script>
     <script>
+      // 端末種別選択モーダルの制御
+      const deviceModal = document.getElementById("deviceModal");
+      const mainGrid = document.getElementById("mainGrid");
+      const mobileUI = document.getElementById("mobileUI");
+      document.getElementById("selectMobile").onclick = () => {
+        deviceModal.style.display = "none";
+        mainGrid.style.display = "none";
+        mobileUI.style.display = "flex";
+      };
+      document.getElementById("selectPC").onclick = () => {
+        deviceModal.style.display = "none";
+        mainGrid.style.display = "";
+        mobileUI.style.display = "none";
+      };
+
+      // 既存のtoggleBtn制御
       const toggleBtn = document.getElementById("toggleBtn");
       const btnGroup = document.querySelector(".button-group");
       let hiddenState = false;
@@ -54,7 +105,12 @@
     </script>
     <script type="module">
       import { salesRef } from "./firebase.js";
-      import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import {
+        onSnapshot,
+        updateDoc,
+        increment,
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      // 進捗バーの更新（PC用のみ）
       onSnapshot(salesRef, (docSnap) => {
         if (!docSnap.exists()) return;
         const data = docSnap.data();
@@ -65,6 +121,17 @@
         if (bar) bar.style.width = percent + "%";
         if (value) value.textContent = `${total} ／ 1500`;
       });
+      // スマホ用ボタンのイベント
+      const mobileBtn1 = document.getElementById("mobileBtn1");
+      const mobileBtn3 = document.getElementById("mobileBtn3");
+      const mobileBtn10 = document.getElementById("mobileBtn10");
+      if (mobileBtn1)
+        mobileBtn1.onclick = () => updateDoc(salesRef, { total: increment(1) });
+      if (mobileBtn3)
+        mobileBtn3.onclick = () => updateDoc(salesRef, { total: increment(3) });
+      if (mobileBtn10)
+        mobileBtn10.onclick = () =>
+          updateDoc(salesRef, { total: increment(10) });
     </script>
   </body>
 </html>
